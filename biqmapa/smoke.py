@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 import sys
 import tempfile
 import time
@@ -18,6 +20,10 @@ def run(result_path: Path) -> int:
     temporary = tempfile.TemporaryDirectory(prefix="biqmapa-test-", ignore_cleanup_errors=True)
     store = Store(Path(temporary.name))
     window = Window(store)
+    shared_map = Path(os.environ["BIQMAPA_TEST_MAP_CACHE"]) if os.environ.get("BIQMAPA_TEST_MAP_CACHE") else None
+    reused_map = bool(shared_map and (shared_map / "biquinhas-4k.json").exists())
+    if reused_map:
+        shutil.copytree(shared_map, window.bridge.offline.directory, dirs_exist_ok=True)
     window.resize(1366, 768)
     window.show()
     started = time.monotonic()
@@ -104,7 +110,9 @@ def run(result_path: Path) -> int:
                 }catch(e){window.__smokeError=String(e)}})();
                 """)
             elif phase == "prepare-local" and status.get("phase") == "local-ready":
-                result.update(offline_4k=True, aligned_geometry=True, single_selection=True)
+                result.update(offline_4k=True, aligned_geometry=True, single_selection=True, reused_offline_map=reused_map)
+                if shared_map:
+                    shutil.copytree(window.bridge.offline.directory, shared_map, dirs_exist_ok=True)
                 window.view.grab().save(str(result_path.with_name(result_path.stem + "-offline.png")))
                 phase = "benchmark"
                 window.page.runJavaScript((ASSETS / "smoke-benchmark.js").read_text(encoding="utf-8"))

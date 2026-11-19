@@ -5,6 +5,7 @@
 - Fontes maiores e melhor contraste na lista de quadras e lotes.
 - Resumo flutuante mais alto e compacto, sem o aviso de situação ativa.
 - Indicadores do acervo concentrados na página Imóveis.
+- CPF e CNPJ completos na ficha, com formatação.
 - Documentação revisada.
 
 # BIQMapa 0.7.2

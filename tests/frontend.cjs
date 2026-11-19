@@ -29,5 +29,6 @@ context.window.devicePixelRatio=2;assert.ok(run('tilePlan(camera,1100,650).every
 run("page='map';selectedCim='101';renderPanel()");assert.ok(!el('#lotPanel').innerHTML.includes('Ativo na origem'));
 run("selectedCim='102';renderPanel()");assert.ok(el('#lotPanel').innerHTML.includes('Excluído na origem'));
 assert.ok(html.indexOf('id="settingsHub"')<html.indexOf('<nav'));assert.ok(!html.includes('id="mapNavSummary"'));
+assert.equal(run("formatRecordDocument('11111111111')"),'111.111.111-11');assert.equal(run("formatRecordDocument('11111111000111')"),'11.111.111/0001-11');assert.equal(run("formatRecordDocument('11.111.111/0001-11')"),'11.111.111/0001-11');
 console.log('Importação Tributos Docs, base vazia, atualização pelo CIM, exclusão lógica, duplicidades, mapa, ficha e persistência: OK.');
 })().catch(error=>{console.error(error);process.exitCode=1});
