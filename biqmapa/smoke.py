@@ -8,14 +8,14 @@ from PySide6.QtCore import QCoreApplication, QEvent, QTimer
 from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWidgets import QApplication
 
-from .desktop import Window, register_scheme
+from .desktop import ASSETS, Window, register_scheme
 from .storage import Store
 
 
 def run(result_path: Path) -> int:
     register_scheme()
     app = QApplication.instance() or QApplication(sys.argv[:1])
-    temporary = tempfile.TemporaryDirectory(prefix="biqmapa-test-")
+    temporary = tempfile.TemporaryDirectory(prefix="biqmapa-test-", ignore_cleanup_errors=True)
     store = Store(Path(temporary.name))
     window = Window(store)
     window.resize(1366, 768)
@@ -26,6 +26,9 @@ def run(result_path: Path) -> int:
 
     def finish(ok, error=""):
         result.update(ok=ok, error=error)
+        future = window.bridge.offline.future
+        if not ok and future is not None and future.done() and future.exception() is not None:
+            result["offline_error"] = repr(future.exception())
         result_path.parent.mkdir(parents=True, exist_ok=True)
         result_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         window._allow_close = True
@@ -33,10 +36,10 @@ def run(result_path: Path) -> int:
         app.quit()
 
     def poll():
-        if time.monotonic() - started > 120:
+        if time.monotonic() - started > 300:
             finish(False, "A interface não concluiu a verificação no prazo.")
             return
-        window.page.runJavaScript("""JSON.stringify((()=>{const b=document.querySelector('#basemapSvg'),c=document.querySelector('#satelliteTiles'),nodes=c?[...c.children]:[],front=c?[...(c.foregroundTileKeys||[])]:[],map=document.querySelector('#map')?.getBoundingClientRect(),main=document.querySelector('#main')?.getBoundingClientRect(),summary=document.querySelector('#mapNavSummary')?.getBoundingClientRect();return {ready:typeof desktopReady!=='undefined'&&desktopReady,count:typeof state!=='undefined'&&state?state.properties.length:null,phase:window.__smokePhase||'',error:window.__smokeError||'',kind:b?.dataset.kind,front:front.length,loaded:front.filter(k=>nodes.some(n=>n.dataset.tile===k&&n.dataset.loaded==='1')).length,detail:Math.max(0,...nodes.map(n=>Number(n.dataset.actualZoom)||0)),mapTop:map?.top,mainTop:main?.top,mapHeight:map?.height,mainHeight:main?.height,summaryTop:summary?.top,mapStatus:document.querySelector('#mapStatus')?.textContent}})())""", inspect)
+        window.page.runJavaScript("""JSON.stringify((()=>{const b=document.querySelector('#basemapSvg'),c=document.querySelector('#satelliteTiles'),nodes=c?[...c.children]:[],front=c?[...(c.foregroundTileKeys||[])]:[],map=document.querySelector('#map')?.getBoundingClientRect(),main=document.querySelector('#main')?.getBoundingClientRect(),summary=document.querySelector('#mapNavSummary')?.getBoundingClientRect();return {ready:typeof desktopReady!=='undefined'&&desktopReady,count:typeof state!=='undefined'&&state?state.properties.length:null,phase:window.__smokePhase||'',error:window.__smokeError||'',kind:b?.dataset.kind,front:front.length,loaded:front.filter(k=>nodes.some(n=>n.dataset.tile===k&&n.dataset.loaded==='1')).length,detail:Math.max(0,...nodes.map(n=>Number(n.dataset.actualZoom)||0)),mapTop:map?.top,mainTop:main?.top,mapHeight:map?.height,mainHeight:main?.height,summaryTop:summary?.top,offlineReady:typeof state!=='undefined'&&!!state?.offlineMap,performance:window.__performanceResults||null,mapStatus:document.querySelector('#mapStatus')?.textContent}})())""", inspect)
 
     def inspect(raw):
         nonlocal phase
@@ -64,12 +67,12 @@ def run(result_path: Path) -> int:
                 phase = "offline"
                 window.page.runJavaScript("Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});drawSvg()")
             elif phase == "offline":
-                assert status.get("kind") == "satellite", "Os trechos carregados desapareceram na simulação offline."
+                assert status.get("kind") in ("satellite", "offline"), "A base desapareceu na simulação offline."
                 result["session_cache"] = True
                 phase = "import"
                 window.page.runJavaScript("""
                 (async()=>{try{
-                  delete navigator.onLine;retrySatellite();page='properties';render();page='map';render();if(!document.querySelector('#satelliteTiles [data-loaded=\"1\"]'))throw Error('O satélite desapareceu ao trocar de tela.');
+                  delete navigator.onLine;retrySatellite();page='properties';render();page='map';render();drawSvgNow();if(!['satellite','offline'].includes(document.querySelector('#basemapSvg').dataset.kind))throw Error('A base desapareceu ao trocar de tela.');
                   page='imports';render();
                   const rows=[{cim:'000101',nome:'CADASTRO DE TESTE A',quadra:'08',lote:'03',situacao:'Ativo'},{cim:'102',nome:'CADASTRO DE TESTE B',quadra:'8',lote:'3',situacao:'Excluído logicamente'}];
                   const transfer=new DataTransfer();transfer.items.add(new File([JSON.stringify({format:'tributos-docs-imoveis',version:1,properties:rows})],'teste.json',{type:'application/json'}));
@@ -86,12 +89,33 @@ def run(result_path: Path) -> int:
                 saved = store.load()
                 assert len(saved["properties"]) == 2
                 assert len(saved["lots"]) == 1
+                phase = "prepare-local"
+                window.page.runJavaScript("""
+                (async()=>{try{
+                  await prepareOfflineMap(false);page='map';selectedBlock='test-block';selectedCim='101';render();drawSvgNow();
+                  const before=JSON.stringify({blocks:state.blocks,lots:state.lots,camera});
+                  await activateOfflineMap();drawSvgNow();
+                  if(before!==JSON.stringify({blocks:state.blocks,lots:state.lots,camera}))throw Error('A imagem local deslocou os contornos ou a câmera.');
+                  Object.defineProperty(navigator,'onLine',{configurable:true,get:()=>false});drawSvgNow();
+                  if(document.querySelector('#basemapSvg').dataset.kind!=='offline')throw Error('A imagem local não abriu offline.');
+                  if(document.querySelectorAll('#mapLayerMenu [aria-selected="true"]').length!==1)throw Error('O seletor possui múltiplas seleções.');
+                  delete navigator.onLine;window.__smokePhase='local-ready';
+                }catch(e){window.__smokeError=String(e)}})();
+                """)
+            elif phase == "prepare-local" and status.get("phase") == "local-ready":
+                result.update(offline_4k=True, aligned_geometry=True, single_selection=True)
+                window.view.grab().save(str(result_path.with_name(result_path.stem + "-offline.png")))
+                phase = "benchmark"
+                window.page.runJavaScript((ASSETS / "smoke-benchmark.js").read_text(encoding="utf-8"))
+            elif phase == "benchmark" and status.get("phase") == "perf-done":
+                result["performance"] = status.get("performance")
                 phase = "reload"
                 window.view.reload()
                 QTimer.singleShot(500, poll)
                 return
             elif phase == "reload" and status["count"] == 2 and status.get("phase") == "":
-                result.update(empty_start=True, import_json=True, status_import=True, sqlite_persistence=True, reload=True)
+                assert status.get("kind") == "offline" and status.get("offlineReady"), "A imagem local não foi preservada ao reabrir."
+                result.update(empty_start=True, import_json=True, status_import=True, sqlite_persistence=True, reload=True, offline_after_reload=True)
                 finish(True)
                 return
             QTimer.singleShot(200, poll)
@@ -100,6 +124,7 @@ def run(result_path: Path) -> int:
 
     QTimer.singleShot(300, poll)
     app.exec()
+    window.bridge.offline.close()
     window.view.setPage(QWebEnginePage(window.view))
     window.page.deleteLater()
     window.profile.deleteLater()
