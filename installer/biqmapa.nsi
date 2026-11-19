@@ -3,7 +3,7 @@ Unicode true
 !include "LogicLib.nsh"
 !include "x64.nsh"
 !ifndef APP_VERSION
-  !define APP_VERSION "0.7.1"
+  !define APP_VERSION "0.7.2"
 !endif
 !ifndef SOURCE_DIR
   !define SOURCE_DIR "..\dist\BIQMapa"

@@ -19,5 +19,12 @@ assert.equal(run('validPolygon([[0,0],[10,0],[10,10],[0,10]])'),true);assert.equ
 for(const page of ['map','properties','alerts','history','imports','backup']){run(`page='${page}';render()`);assert.ok(el('#main').innerHTML.length>100)}
 run("details('101')");assert.match(el('#main').innerHTML,/CADASTRO FICTICIO A/);assert.equal(run('validateState(structuredClone(state)).properties.length'),2);await run('save()');assert.equal(run('stored.properties.length'),2);
 assert.ok(!html.includes('indexedDB.open('));assert.equal(JSON.parse(seed).properties.length,0);assert.equal(JSON.parse(seed).originHistory.length,0);
+
+const node=(key,quality)=>({dataset:{tile:key,actualZoom:String(quality)},tileSpec:{z:quality}});
+const sharp=node('18/1/1',18),blurred=node('16/0/0',16),old=node('14/0/0',14);
+context.tileContainer={children:[sharp,old,blurred],foregroundTileKeys:new Set(['18/1/1']),moves:0,insertBefore(n,b){this.moves++;this.children=this.children.filter(x=>x!==n);this.children.splice(b?this.children.indexOf(b):this.children.length,0,n)}};
+run('sortSatelliteLayers(tileContainer)');assert.deepEqual(context.tileContainer.children.map(n=>n.dataset.actualZoom),['14','16','18']);const moved=context.tileContainer.moves;run('sortSatelliteLayers(tileContainer)');assert.equal(context.tileContainer.moves,moved,'A ordem estável não deve mover nós do mapa.');
+run("page='map';mapLayer='satellite';renderMap()");assert.equal((run('mapLayerPickerHtml()').match(/aria-selected=\"true\"/g)||[]).length,1);assert.ok(!run('mapLayerPickerHtml()').includes('<select'));
+context.window.devicePixelRatio=2;assert.ok(run('tilePlan(camera,1100,650).every(t=>t.z<=18)'));
 console.log('Importação Tributos Docs, base vazia, atualização pelo CIM, exclusão lógica, duplicidades, mapa, ficha e persistência: OK.');
 })().catch(error=>{console.error(error);process.exitCode=1});

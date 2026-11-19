@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBo
 
 from . import __version__
 from .storage import Store, data_directory
+from .offline_map import OfflineMap
 
 ASSETS = Path(__file__).parent / "assets"
 APP_URL = "biqmapa://app/index.html"
@@ -71,6 +72,18 @@ class Bridge(QObject):
     def __init__(self, store, parent=None):
         super().__init__(parent)
         self.store = store
+        text = (ASSETS / "index.html").read_text(encoding="utf-8")
+        seed = text.split('<script id="seed" type="application/json">', 1)[1].split("</script>", 1)[0]
+        self.offline = OfflineMap(store.directory, json.loads(seed)["mapData"])
+
+    @Slot(bool, result=str)
+    def prepare_offline_map(self, refresh):
+        self.offline.start(refresh)
+        return '{"ok":true}'
+
+    @Slot(result=str)
+    def offline_map_status(self):
+        return json.dumps(self.offline.status(), ensure_ascii=False)
 
     @Slot(result=str)
     def load_state(self):
@@ -237,6 +250,7 @@ def main():
         window.activateWindow()
     lock.newConnection.connect(activate)
     result = app.exec()
+    window.bridge.offline.close()
     window.view.setPage(QWebEnginePage(window.view))
     window.page.deleteLater()
     app.sendPostedEvents(None, 0)

@@ -1,3 +1,13 @@
+# BIQMapa 0.7.2 — em revisão
+
+- Seletor de base próprio, com uma única opção selecionada e indicação visual distinta do estado de passar o mouse.
+- Ordenação dos trechos de satélite por resolução real para impedir que imagens mais borradas cubram trechos nítidos.
+- Consideração da densidade de pixels da tela ao escolher o nível do satélite.
+- Imagem local estática em 4K, preparada uma vez com internet e mantida fora da pasta de instalação e do repositório.
+- Mesma referência geográfica ao alternar entre imagem local e satélite; os contornos não são deslocados nem convertidos.
+- Backup JSON inclui a base local preparada.
+- Alterações em branch e PR, aguardando o comentário APROVADO antes da integração à main.
+
 # BIQMapa 0.7.1 para Windows
 
 - Corrige o acesso da janela local às imagens do satélite utilizado no protótipo HTML.

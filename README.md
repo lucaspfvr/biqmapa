@@ -6,7 +6,7 @@ A versão Windows parte da interface 0.7.0, com o painel lateral de quadras e a 
 
 ## Instalação
 
-Baixe `BIQMapa-Setup-0.7.1.exe` na página de [versões](https://github.com/lucaspfvr/biqmapa/releases). Execute o instalador e abra o BIQMapa pelo atalho criado na área de trabalho. Não precisa instalar Python nem usar terminal.
+Baixe `BIQMapa-Setup-0.7.2.exe` na página de [versões](https://github.com/lucaspfvr/biqmapa/releases). Execute o instalador e abra o BIQMapa pelo atalho criado na área de trabalho. Não precisa instalar Python nem usar terminal.
 
 Requisitos: Windows 10 ou 11, 64 bits. O instalador ainda não tem assinatura digital.
 
@@ -69,3 +69,15 @@ O GitHub Actions executa os testes, monta o aplicativo e gera o instalador a cad
 - `tests/`: persistência e importação.
 
 Desenvolvido por Lucas Cézar de Oliveira.
+
+## Revisão das alterações
+
+Correções e recursos são preparados em branches separadas, com um PR e um instalador de teste. A integração à main acontece depois do comentário **APROVADO** do Lucas, referente à revisão apresentada.
+
+## Imagem local 4K
+
+Na primeira preparação com conexão, o aplicativo solicita uma imagem estática de Biquinhas ao mesmo serviço do satélite. A exportação tem 4096 × 3106 pixels, o limite de largura informado pelo serviço. A imagem fica na pasta de dados local e também acompanha os backups JSON. Não é enviada ao GitHub nem incluída no repositório.
+
+O botão **Imagem local** abre essa cópia com a mesma referência geográfica do mapa online, preservando quadras, lotes, posição e zoom. A primeira preparação precisa de internet. Depois disso ela funciona sem conexão, inclusive após fechar e reabrir o programa. Aumentar o zoom não cria detalhes além dos pixels disponíveis; o satélite online pode ter mais detalhe que a exportação de toda a cidade.
+
+A cópia é uma representação estática para uso interno, com créditos ao fornecedor. Não é um pacote de tiles e não é redistribuída junto ao instalador. A opção antiga de imagem personalizada continua disponível quando já há uma base ou contornos nesse espaço.

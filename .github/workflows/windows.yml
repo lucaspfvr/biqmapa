@@ -3,6 +3,8 @@ name: Windows
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -52,7 +54,7 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw 'A instalação falhou.' }
           $resultPath = Join-Path $env:RUNNER_TEMP 'smoke-installed.json'
           $process = Start-Process -FilePath "$installDir/BIQMapa.exe" -ArgumentList @('--smoke-test', $resultPath) -PassThru
-          if (!$process.WaitForExit(180000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
+          if (!$process.WaitForExit(240000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
           if ($process.ExitCode -ne 0) { throw 'O aplicativo empacotado falhou.' }
           $result = Get-Content $resultPath -Raw | ConvertFrom-Json
           if (!$result.ok) { throw $result.error }
@@ -75,10 +77,12 @@ jobs:
           path: |
             build/smoke.json
             build/smoke-map.png
+            build/smoke-offline.png
             release/smoke-installed.json
           if-no-files-found: warn
           retention-days: 14
       - name: Publicar versão
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
