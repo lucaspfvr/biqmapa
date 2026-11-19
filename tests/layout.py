@@ -31,17 +31,18 @@ with sync_playwright() as p:
    assert m['settings']['b']<=m['header']['b'],m
    assert m['panel']['h']>300,m
    assert m['details']['b']<=m['panel']['b'],m
+   assert page.locator('#deleteLot').bounding_box()['y']+page.locator('#deleteLot').bounding_box()['height']<=m['panel']['b'],m
    assert not m['activeBadge'],m
    assert float(m['ownerFont'].replace('px',''))>=12,m
    page.screenshot(path=str(out/f'mapa-{width}.png'))
   page.set_viewport_size({'width':1366,'height':684});page.wait_for_timeout(100)
-  page.click('#settingsToggle');page.screenshot(path=str(out/'opcoes.png'))
+  page.click('#settingsToggle');page.wait_for_timeout(220);page.screenshot(path=str(out/'opcoes.png'))
   assert page.locator('#settingsMenu').is_visible()
   page.click('#help');assert page.locator('#dialog').is_visible();page.click('#dialogClose')
-  page.click('#settingsToggle');page.click('[data-page=about]');page.screenshot(path=str(out/'sobre.png'))
+  page.click('#settingsToggle');page.click('[data-page=about]');page.wait_for_timeout(220);page.screenshot(path=str(out/'sobre.png'))
   assert page.locator('a[href="https://github.com/lucaspfvr"]').is_visible()
   assert 'Lucas Cézar de Oliveira' in page.locator('#main').inner_text()
-  page.click('[data-page=properties]');page.screenshot(path=str(out/'imoveis.png'))
+  page.click('[data-page=properties]');page.wait_for_timeout(220);page.screenshot(path=str(out/'imoveis.png'))
   assert 'QUADRAS' in page.locator('.register-overview').inner_text()
   page.click('[data-page=map]');page.click('#collapseExplorer');page.wait_for_timeout(100)
   assert page.locator('#map').bounding_box()['y']>=page.locator('nav').bounding_box()['y']
