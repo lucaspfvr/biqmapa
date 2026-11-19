@@ -114,6 +114,8 @@ class Window(QMainWindow):
         self.page = AppPage(self.profile, self.view)
         self.view.setPage(self.page)
         self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.FullScreenSupportEnabled, True)
+        self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, False)
+        self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
         self.channel = QWebChannel(self.page)
         self.bridge = Bridge(store, self.channel)
         self.channel.registerObject("desktop", self.bridge)

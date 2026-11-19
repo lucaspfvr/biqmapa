@@ -6,7 +6,7 @@ A versão Windows parte da interface 0.7.0, com o painel lateral de quadras e a 
 
 ## Instalação
 
-Baixe `BIQMapa-Setup-0.7.0.exe` na página de [versões](https://github.com/lucaspfvr/biqmapa/releases). Execute o instalador e abra o BIQMapa pelo atalho criado na área de trabalho. Não precisa instalar Python nem usar terminal.
+Baixe `BIQMapa-Setup-0.7.1.exe` na página de [versões](https://github.com/lucaspfvr/biqmapa/releases). Execute o instalador e abra o BIQMapa pelo atalho criado na área de trabalho. Não precisa instalar Python nem usar terminal.
 
 Requisitos: Windows 10 ou 11, 64 bits. O instalador ainda não tem assinatura digital.
 

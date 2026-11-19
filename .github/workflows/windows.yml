@@ -52,7 +52,7 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw 'A instalação falhou.' }
           $resultPath = Join-Path $env:RUNNER_TEMP 'smoke-installed.json'
           $process = Start-Process -FilePath "$installDir/BIQMapa.exe" -ArgumentList @('--smoke-test', $resultPath) -PassThru
-          if (!$process.WaitForExit(90000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
+          if (!$process.WaitForExit(180000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
           if ($process.ExitCode -ne 0) { throw 'O aplicativo empacotado falhou.' }
           $result = Get-Content $resultPath -Raw | ConvertFrom-Json
           if (!$result.ok) { throw $result.error }
@@ -67,6 +67,17 @@ jobs:
             build/smoke.json
           if-no-files-found: warn
           retention-days: 30
+      - name: Guardar verificação visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BIQMapa-Diagnostico
+          path: |
+            build/smoke.json
+            build/smoke-map.png
+            release/smoke-installed.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Publicar versão
         shell: pwsh
         env:

@@ -1,3 +1,12 @@
+# BIQMapa 0.7.1 para Windows
+
+- Corrige o acesso da janela local às imagens do satélite utilizado no protótipo HTML.
+- Move o resumo do mapa para o menu superior e aproveita a altura antes ocupada pelo cabeçalho da página.
+- Mantém os trechos carregados durante a sessão ao navegar entre as telas e em quedas curtas de conexão.
+- Acrescenta uma opção para tentar carregar o satélite novamente.
+- Verifica o carregamento real das imagens no Windows antes de publicar o instalador.
+- Preserva o banco e os backups da versão 0.7.0.
+
 # BIQMapa 0.7.0 para Windows
 
 - Primeira versão instalável para uso individual.

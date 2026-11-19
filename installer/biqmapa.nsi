@@ -3,7 +3,7 @@ Unicode true
 !include "LogicLib.nsh"
 !include "x64.nsh"
 !ifndef APP_VERSION
-  !define APP_VERSION "0.7.0"
+  !define APP_VERSION "0.7.1"
 !endif
 !ifndef SOURCE_DIR
   !define SOURCE_DIR "..\dist\BIQMapa"
@@ -18,7 +18,7 @@ InstallDirRegKey HKCU "Software\BIQMapa" "InstallDir"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
 BrandingText "BIQMapa · Mapeamento Urbano"
-VIProductVersion "0.7.0.0"
+VIProductVersion "${APP_VERSION}.0"
 VIAddVersionKey /LANG=1046 "ProductName" "BIQMapa"
 VIAddVersionKey /LANG=1046 "CompanyName" "Lucas Cézar de Oliveira"
 VIAddVersionKey /LANG=1046 "FileDescription" "Instalador do BIQMapa"
