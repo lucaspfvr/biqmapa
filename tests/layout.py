@@ -7,7 +7,7 @@ state=dict(version=1,mapLayer='streets',properties=properties,originHistory=[],b
 html=html.replace('<script src="qrc:///qtwebchannel/qwebchannel.js"></script>','').replace('biqmapa://app/','http://biqmapa.test/').replace('img-src biqmapa:','img-src http:')
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True)
- page=browser.new_page(viewport={'width':1366,'height':684},device_scale_factor=1)
+ page=browser.new_page(viewport={'width':1366,'height':684},device_scale_factor=1,bypass_csp=True)
  errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  def route(r):
   if r.request.url=='http://biqmapa.test/':r.fulfill(status=200,body=html,content_type='text/html');return
@@ -16,32 +16,39 @@ with sync_playwright() as p:
   r.abort()
  page.route('**/*',route)
  page.add_init_script('window.__fixture='+json.dumps(state)+';window.qt={webChannelTransport:{}};window.QWebChannel=function(t,callback){callback({objects:{desktop:{load_state(cb){cb(JSON.stringify({ok:true,state:window.__fixture}))},save_state(payload,cb){cb(\'{"ok":true}\')},environment(cb){cb(\'{"directory":"teste"}\')}}}})};')
- page.goto('http://biqmapa.test/');page.wait_for_function('typeof desktopReady!=="undefined"&&desktopReady')
- page.evaluate("selectedBlock='b13';selectedCim='90001';camera={x:3100,y:2400,w:1100,h:700};renderMap();drawSvgNow()")
- page.wait_for_timeout(200)
- def measure():return page.evaluate('''(()=>{const box=s=>{const r=document.querySelector(s)?.getBoundingClientRect();return r?{x:r.x,y:r.y,w:r.width,h:r.height,b:r.bottom}:null};return{map:box('#map'),nav:box('nav'),panel:box('#lotPanel .panel'),details:box('#moreDetails'),header:box('.institutional-header'),settings:box('#settingsToggle'),sidebar:box('#territorySidebar'),ownerFont:getComputedStyle(document.querySelector('.explorer-owner')).fontSize,activeBadge:document.querySelector('#lotPanel')?.innerText.includes('Ativo na origem')}})()''')
- reports={}
- for width,height in [(1366,684),(1024,768),(1920,1000)]:
-  page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(120);m=measure();reports[str(width)]=m
-  assert abs(m['map']['y']-m['header']['b'])<=1,m
-  assert m['settings']['b']<=m['header']['b'],m
-  assert m['panel']['h']>300,m
-  assert m['details']['b']<=m['panel']['b'],m
-  assert not m['activeBadge'],m
-  assert float(m['ownerFont'].replace('px',''))>=12,m
-  page.screenshot(path=str(out/f'mapa-{width}.png'))
- page.set_viewport_size({'width':1366,'height':684});page.wait_for_timeout(100)
- page.click('#settingsToggle');page.screenshot(path=str(out/'opcoes.png'))
- assert page.locator('#settingsMenu').is_visible()
- page.click('#help');assert page.locator('#dialog').is_visible();page.click('#dialogClose')
- page.click('#settingsToggle');page.click('[data-page=about]');page.screenshot(path=str(out/'sobre.png'))
- assert page.locator('a[href="https://github.com/lucaspfvr"]').is_visible()
- assert 'Lucas Cézar de Oliveira' in page.locator('#main').inner_text()
- page.click('[data-page=properties]');page.screenshot(path=str(out/'imoveis.png'))
- assert 'QUADRAS' in page.locator('.register-overview').inner_text()
- page.click('[data-page=map]');page.click('#collapseExplorer');page.wait_for_timeout(100)
- assert page.locator('#map').bounding_box()['y']>=page.locator('nav').bounding_box()['y']
- page.click('#explorerToggle');page.click('#fullscreenBtn');page.wait_for_timeout(100)
- assert page.locator('#map').bounding_box()['height']>=680
- page.click('#fullscreenBtn');assert not errors,errors
- (out/'layout.json').write_text(json.dumps(reports,indent=2));print(json.dumps(reports,indent=2));browser.close()
+ try:
+  page.goto('http://biqmapa.test/');page.wait_for_function('typeof desktopReady!=="undefined"&&desktopReady')
+  page.evaluate("selectedBlock='b13';selectedCim='90001';camera={x:3100,y:2400,w:1100,h:700};renderMap();drawSvgNow()")
+  page.wait_for_timeout(200)
+  def measure():return page.evaluate('''(()=>{const box=s=>{const r=document.querySelector(s)?.getBoundingClientRect();return r?{x:r.x,y:r.y,w:r.width,h:r.height,b:r.bottom}:null};return{map:box('#map'),nav:box('nav'),panel:box('#lotPanel .panel'),details:box('#moreDetails'),header:box('.institutional-header'),settings:box('#settingsToggle'),sidebar:box('#territorySidebar'),ownerFont:getComputedStyle(document.querySelector('.explorer-owner')).fontSize,activeBadge:document.querySelector('#lotPanel')?.innerText.includes('Ativo na origem')}})()''')
+  reports={}
+  for width,height in [(1366,684),(1024,768),(1920,1000)]:
+   page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(120);m=measure();reports[str(width)]=m
+   (out/'layout.json').write_text(json.dumps(reports,indent=2))
+   page.screenshot(path=str(out/f'mapa-{width}.png'))
+   assert abs(m['map']['y']-m['header']['b'])<=1,m
+   assert m['settings']['b']<=m['header']['b'],m
+   assert m['panel']['h']>300,m
+   assert m['details']['b']<=m['panel']['b'],m
+   assert not m['activeBadge'],m
+   assert float(m['ownerFont'].replace('px',''))>=12,m
+   page.screenshot(path=str(out/f'mapa-{width}.png'))
+  page.set_viewport_size({'width':1366,'height':684});page.wait_for_timeout(100)
+  page.click('#settingsToggle');page.screenshot(path=str(out/'opcoes.png'))
+  assert page.locator('#settingsMenu').is_visible()
+  page.click('#help');assert page.locator('#dialog').is_visible();page.click('#dialogClose')
+  page.click('#settingsToggle');page.click('[data-page=about]');page.screenshot(path=str(out/'sobre.png'))
+  assert page.locator('a[href="https://github.com/lucaspfvr"]').is_visible()
+  assert 'Lucas Cézar de Oliveira' in page.locator('#main').inner_text()
+  page.click('[data-page=properties]');page.screenshot(path=str(out/'imoveis.png'))
+  assert 'QUADRAS' in page.locator('.register-overview').inner_text()
+  page.click('[data-page=map]');page.click('#collapseExplorer');page.wait_for_timeout(100)
+  assert page.locator('#map').bounding_box()['y']>=page.locator('nav').bounding_box()['y']
+  page.click('#explorerToggle');page.click('#fullscreenBtn');page.wait_for_timeout(100)
+  assert page.locator('#map').bounding_box()['height']>=680
+  page.click('#fullscreenBtn');assert not errors,errors
+  (out/'layout.json').write_text(json.dumps(reports,indent=2));print(json.dumps(reports,indent=2));browser.close()
+ except Exception:
+  page.screenshot(path=str(out/"falha.png"))
+  print("Erros na página:",errors)
+  raise
