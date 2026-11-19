@@ -1,0 +1,77 @@
+name: Windows
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  installer:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.11'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependências
+        run: python -m pip install -r requirements-build.txt
+      - name: Testar armazenamento e importação
+        run: |
+          python -m unittest discover -s tests -v
+          node tests/frontend.cjs
+          python scripts/smoke.py
+      - name: Instalar NSIS
+        shell: pwsh
+        run: |
+          if (!(Test-Path '${{ env.ProgramFiles }}\NSIS\makensis.exe') -and !(Test-Path 'C:\Program Files (x86)\NSIS\makensis.exe')) {
+            choco install nsis --yes --no-progress
+          }
+      - name: Montar aplicativo e instalador
+        run: python scripts/build_windows.py
+      - name: Verificar instalação e execução
+        shell: pwsh
+        run: |
+          $version = python -c "from biqmapa import __version__; print(__version__)"
+          $installDir = Join-Path $env:RUNNER_TEMP 'BIQMapa-instalado'
+          $setup = Start-Process -FilePath "release/BIQMapa-Setup-$version.exe" -ArgumentList @('/S', "/D=$installDir") -PassThru -Wait
+          if ($setup.ExitCode -ne 0) { throw 'A instalação falhou.' }
+          $resultPath = Join-Path $env:RUNNER_TEMP 'smoke-installed.json'
+          $process = Start-Process -FilePath "$installDir/BIQMapa.exe" -ArgumentList @('--smoke-test', $resultPath) -PassThru
+          if (!$process.WaitForExit(90000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
+          if ($process.ExitCode -ne 0) { throw 'O aplicativo empacotado falhou.' }
+          $result = Get-Content $resultPath -Raw | ConvertFrom-Json
+          if (!$result.ok) { throw $result.error }
+          Copy-Item $resultPath release/smoke-installed.json
+      - name: Guardar instalador
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BIQMapa-Windows
+          path: |
+            release/*
+            build/smoke.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publicar versão
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = python -c "from biqmapa import __version__; print(__version__)"
+          gh release view "v$version" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create "v$version" --target '${{ github.sha }}' --title "BIQMapa $version" --notes-file CHANGELOG.md "release/BIQMapa-Setup-$version.exe" "release/BIQMapa-Setup-$version.exe.sha256"
+            if ($LASTEXITCODE -ne 0) { throw 'Não foi possível publicar a versão.' }
+          }
