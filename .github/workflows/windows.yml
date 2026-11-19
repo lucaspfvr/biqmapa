@@ -54,11 +54,14 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw 'A instalação falhou.' }
           $resultPath = Join-Path $env:RUNNER_TEMP 'smoke-installed.json'
           $process = Start-Process -FilePath "$installDir/BIQMapa.exe" -ArgumentList @('--smoke-test', $resultPath) -PassThru
+          $null = $process.Handle
           if (!$process.WaitForExit(360000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
-          if ($process.ExitCode -ne 0) { throw 'O aplicativo empacotado falhou.' }
-          $result = Get-Content $resultPath -Raw | ConvertFrom-Json
-          if (!$result.ok) { throw $result.error }
-          Copy-Item $resultPath release/smoke-installed.json
+          if (Test-Path $resultPath) {
+            Copy-Item $resultPath release/smoke-installed.json
+            $result = Get-Content $resultPath -Raw | ConvertFrom-Json
+            if (!$result.ok) { Get-Content $resultPath -Raw; throw $result.error }
+          } else { throw 'O aplicativo não gravou o diagnóstico da instalação.' }
+          if ($process.ExitCode -ne 0) { throw "O aplicativo empacotado encerrou com código $($process.ExitCode)." }
       - name: Guardar instalador
         if: always()
         uses: actions/upload-artifact@v4

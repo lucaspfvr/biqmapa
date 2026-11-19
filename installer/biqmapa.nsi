@@ -65,7 +65,7 @@ Section "BIQMapa" SEC_MAIN
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "DisplayVersion" "${APP_VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "Publisher" "Lucas Cézar de Oliveira"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "DisplayIcon" "$INSTDIR\BIQMapa.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "UninstallString" '$"$INSTDIR\Desinstalar.exe$"'
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "UninstallString" '"$INSTDIR\Desinstalar.exe"'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\BIQMapa" "NoRepair" 1
 SectionEnd
