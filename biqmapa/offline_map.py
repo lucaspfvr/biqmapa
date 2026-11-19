@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import logging
 import math
 import re
 import urllib.parse
@@ -73,6 +74,7 @@ class OfflineMap:
         try:
             return {"ok": True, "ready": True, "image": self.future.result()}
         except Exception:
+            logging.exception("Falha ao preparar a imagem local de Biquinhas")
             return {"ok": False, "error": "Não foi possível preparar a imagem local. Confira a conexão e tente novamente; a cópia anterior foi preservada."}
 
     def prepare(self, refresh=False):
@@ -98,7 +100,7 @@ class OfflineMap:
             size=f"4096,{height}", format="jpg", transparent="false", dpi=96, compressionQuality=100,
         ))
         request = urllib.request.Request(SERVICE + "/export?" + params, headers={"User-Agent": "BIQMapa/0.7.2"})
-        with urllib.request.urlopen(request, timeout=45) as response:
+        with urllib.request.urlopen(request, timeout=120) as response:
             exported = json.load(response)
         if "error" in exported or exported.get("width") != 4096 or exported.get("height") != height:
             raise ValueError("A exportação não retornou a dimensão esperada.")

@@ -81,3 +81,5 @@ Na primeira preparação com conexão, o aplicativo solicita uma imagem estátic
 O botão **Imagem local** abre essa cópia com a mesma referência geográfica do mapa online, preservando quadras, lotes, posição e zoom. A primeira preparação precisa de internet. Depois disso ela funciona sem conexão, inclusive após fechar e reabrir o programa. Aumentar o zoom não cria detalhes além dos pixels disponíveis; o satélite online pode ter mais detalhe que a exportação de toda a cidade.
 
 A cópia é uma representação estática para uso interno, com créditos ao fornecedor. Não é um pacote de tiles e não é redistribuída junto ao instalador. A opção antiga de imagem personalizada continua disponível quando já há uma base ou contornos nesse espaço.
+
+A primeira preparação da imagem local pode demorar até dois minutos, conforme a resposta do serviço de imagens. A navegação continua disponível durante a preparação.

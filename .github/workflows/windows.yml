@@ -54,7 +54,7 @@ jobs:
           if ($setup.ExitCode -ne 0) { throw 'A instalação falhou.' }
           $resultPath = Join-Path $env:RUNNER_TEMP 'smoke-installed.json'
           $process = Start-Process -FilePath "$installDir/BIQMapa.exe" -ArgumentList @('--smoke-test', $resultPath) -PassThru
-          if (!$process.WaitForExit(240000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
+          if (!$process.WaitForExit(360000)) { $process.Kill(); throw 'O aplicativo não respondeu.' }
           if ($process.ExitCode -ne 0) { throw 'O aplicativo empacotado falhou.' }
           $result = Get-Content $resultPath -Raw | ConvertFrom-Json
           if (!$result.ok) { throw $result.error }

@@ -15,7 +15,7 @@ from .storage import Store
 def run(result_path: Path) -> int:
     register_scheme()
     app = QApplication.instance() or QApplication(sys.argv[:1])
-    temporary = tempfile.TemporaryDirectory(prefix="biqmapa-test-")
+    temporary = tempfile.TemporaryDirectory(prefix="biqmapa-test-", ignore_cleanup_errors=True)
     store = Store(Path(temporary.name))
     window = Window(store)
     window.resize(1366, 768)
@@ -26,6 +26,9 @@ def run(result_path: Path) -> int:
 
     def finish(ok, error=""):
         result.update(ok=ok, error=error)
+        future = window.bridge.offline.future
+        if not ok and future is not None and future.done() and future.exception() is not None:
+            result["offline_error"] = repr(future.exception())
         result_path.parent.mkdir(parents=True, exist_ok=True)
         result_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         window._allow_close = True
@@ -33,7 +36,7 @@ def run(result_path: Path) -> int:
         app.quit()
 
     def poll():
-        if time.monotonic() - started > 180:
+        if time.monotonic() - started > 300:
             finish(False, "A interface não concluiu a verificação no prazo.")
             return
         window.page.runJavaScript("""JSON.stringify((()=>{const b=document.querySelector('#basemapSvg'),c=document.querySelector('#satelliteTiles'),nodes=c?[...c.children]:[],front=c?[...(c.foregroundTileKeys||[])]:[],map=document.querySelector('#map')?.getBoundingClientRect(),main=document.querySelector('#main')?.getBoundingClientRect(),summary=document.querySelector('#mapNavSummary')?.getBoundingClientRect();return {ready:typeof desktopReady!=='undefined'&&desktopReady,count:typeof state!=='undefined'&&state?state.properties.length:null,phase:window.__smokePhase||'',error:window.__smokeError||'',kind:b?.dataset.kind,front:front.length,loaded:front.filter(k=>nodes.some(n=>n.dataset.tile===k&&n.dataset.loaded==='1')).length,detail:Math.max(0,...nodes.map(n=>Number(n.dataset.actualZoom)||0)),mapTop:map?.top,mainTop:main?.top,mapHeight:map?.height,mainHeight:main?.height,summaryTop:summary?.top,offlineReady:typeof state!=='undefined'&&!!state?.offlineMap,performance:window.__performanceResults||null,mapStatus:document.querySelector('#mapStatus')?.textContent}})())""", inspect)
