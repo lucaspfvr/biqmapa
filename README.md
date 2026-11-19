@@ -12,7 +12,7 @@ Requisitos: Windows 10 ou 11, 64 bits. O instalador ainda não tem assinatura di
 
 ## Primeiro uso
 
-O aplicativo começa sem imóveis. Em **Configurações → Importar dados**, selecione o mesmo JSON tratado que é utilizado no Tributos Docs. Confira os registros novos e as alterações antes de aplicar a importação. Também é possível importar CSV.
+O aplicativo começa sem imóveis. Em **Configurações → Importar dados**, selecione seu arquivo JSON de imóveis (.json), o mesmo arquivo já utilizado no setor. A importação é direta pelo arquivo; não depende de outro programa instalado. Confira os registros novos e as alterações antes de aplicar a importação. Também é possível importar CSV.
 
 O CIM identifica o imóvel nas atualizações. Quadra e lote são comparados sem zeros à esquerda. Duplicidades aparecem para conferência e não impedem selecionar o cadastro correto pelo CIM. Um imóvel ausente no relatório não é excluído automaticamente.
 
@@ -20,7 +20,7 @@ Para continuar um trabalho feito no protótipo HTML, exporte o backup naquele ar
 
 ## Mapa
 
-O satélite carrega pela internet. O mapa de ruas de Biquinhas funciona offline. Cadastros, fotos, histórico e desenhos ficam no computador; os dados dos proprietários não são enviados ao fornecedor das imagens.
+O satélite carrega pela internet. O mapa de ruas de Biquinhas funciona offline. Cadastros, fotos, histórico e desenhos ficam no computador; os dados dos proprietários não são enviados ao fornecedor das imagens nem ao GitHub.
 
 Desenhe a quadra e depois vincule cada lote ao cadastro correspondente. Durante o desenho, use Espaço + arrastar ou o botão direito para mover o mapa. A roda do mouse controla o zoom. O último ponto fica ligado ao primeiro para facilitar o fechamento.
 
