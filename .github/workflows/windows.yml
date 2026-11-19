@@ -15,7 +15,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  interface:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.11'
+      - name: Preparar verificação da interface
+        run: |
+          python -m pip install -r requirements-ui-test.txt
+          python -m playwright install --with-deps chromium
+      - name: Conferir navegação e proporções
+        run: python tests/layout.py
+      - name: Guardar telas da interface
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BIQMapa-Interface
+          path: build/interface/
+          retention-days: 14
   installer:
+    needs: interface
     runs-on: windows-2022
     timeout-minutes: 35
     steps:

@@ -2,11 +2,11 @@
 
 Aplicativo para organizar o mapeamento de quadras e lotes de Biquinhas/MG e consultar os dados dos imóveis. Desenvolvi para o trabalho dos setores de Tributos e Engenharia da Prefeitura.
 
-A versão Windows parte da interface 0.7.0, com o painel lateral de quadras e a ficha do imóvel. O uso é individual, com os dados salvos no próprio computador.
+O uso é individual, com os dados salvos no próprio computador. A interface reúne o mapa, a consulta de imóveis e os históricos de alterações.
 
 ## Instalação
 
-Baixe `BIQMapa-Setup-0.7.2.exe` na página de [versões](https://github.com/lucaspfvr/biqmapa/releases). Execute o instalador e abra o BIQMapa pelo atalho criado na área de trabalho. Não precisa instalar Python nem usar terminal.
+Baixe o instalador do BIQMapa na página de [versões](https://github.com/lucaspfvr/biqmapa/releases). Execute o instalador e abra o BIQMapa pelo atalho criado na área de trabalho. Não precisa instalar Python nem usar terminal.
 
 Requisitos: Windows 10 ou 11, 64 bits. O instalador ainda não tem assinatura digital.
 
@@ -70,10 +70,6 @@ O GitHub Actions executa os testes, monta o aplicativo e gera o instalador a cad
 
 Desenvolvido por Lucas Cézar de Oliveira.
 
-## Revisão das alterações
-
-Correções e recursos são preparados em branches separadas, com um PR e um instalador de teste. A integração à main acontece depois do comentário **APROVADO** do Lucas, referente à revisão apresentada.
-
 ## Imagem local 4K
 
 Na primeira preparação com conexão, o aplicativo solicita uma imagem estática de Biquinhas ao mesmo serviço do satélite. A exportação tem 4096 × 3106 pixels, o limite de largura informado pelo serviço. A imagem fica na pasta de dados local e também acompanha os backups JSON. Não é enviada ao GitHub nem incluída no repositório.
@@ -83,3 +79,8 @@ O botão **Imagem local** abre essa cópia com a mesma referência geográfica d
 A cópia é uma representação estática para uso interno, com créditos ao fornecedor. Não é um pacote de tiles e não é redistribuída junto ao instalador. A opção antiga de imagem personalizada continua disponível quando já há uma base ou contornos nesse espaço.
 
 A primeira preparação da imagem local pode demorar até dois minutos, conforme a resposta do serviço de imagens. A navegação continua disponível durante a preparação.
+
+
+## Interface
+
+O menu do cabeçalho reúne configurações, importação, backup, guia de uso e informações sobre o BIQMapa. As abas Mapa, Imóveis e Histórico dão acesso às telas principais. No mapa, o painel esquerdo organiza quadras e lotes; o resumo do imóvel abre à direita. Os indicadores gerais do acervo ficam em Imóveis.

@@ -1,4 +1,13 @@
-# BIQMapa 0.7.2 — em revisão
+# BIQMapa 0.7.3
+
+- Configurações no cabeçalho, com acesso ao guia de uso e à página Sobre.
+- Mais altura para o mapa, com as abas alinhadas ao painel de quadras.
+- Fontes maiores e melhor contraste na lista de quadras e lotes.
+- Resumo flutuante mais alto e compacto, sem o aviso de situação ativa.
+- Indicadores do acervo concentrados na página Imóveis.
+- Documentação revisada.
+
+# BIQMapa 0.7.2
 
 - Seletor de base próprio, com uma única opção selecionada e indicação visual distinta do estado de passar o mouse.
 - Ordenação dos trechos de satélite por resolução real para impedir que imagens mais borradas cubram trechos nítidos.
@@ -6,7 +15,6 @@
 - Imagem local estática em 4K, preparada uma vez com internet e mantida fora da pasta de instalação e do repositório.
 - Mesma referência geográfica ao alternar entre imagem local e satélite; os contornos não são deslocados nem convertidos.
 - Backup JSON inclui a base local preparada.
-- Alterações em branch e PR, aguardando o comentário APROVADO antes da integração à main.
 
 # BIQMapa 0.7.1 para Windows
 
