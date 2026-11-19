@@ -27,7 +27,10 @@ with sync_playwright() as p:
    page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(120);m=measure();reports[str(width)]=m
    (out/'layout.json').write_text(json.dumps(reports,indent=2))
    page.screenshot(path=str(out/f'mapa-{width}.png'))
-   assert abs(m['map']['y']-m['header']['b'])<=1,m
+   assert abs(m['map']['y']-m['nav']['b']-12)<=1,m
+   assert abs(m['map']['h']-(height-m['map']['y']-15))<=1,m
+   assert abs(m['sidebar']['y']-m['map']['y'])<=1,m
+   assert m['nav']['w']==width,m
    assert m['settings']['b']<=m['header']['b'],m
    assert m['panel']['h']>300,m
    assert m['details']['b']<=m['panel']['b'],m
@@ -46,7 +49,10 @@ with sync_playwright() as p:
   assert 'QUADRAS' in page.locator('.register-overview').inner_text()
   page.evaluate("details('90001')");assert '111.111.111-11' in page.locator('.record-document').inner_text()
   page.click('[data-page=map]');page.click('#collapseExplorer');page.wait_for_timeout(100)
-  assert page.locator('#map').bounding_box()['y']>=page.locator('nav').bounding_box()['y']
+  assert page.locator('#map').bounding_box()['y']>=page.locator('nav').bounding_box()['y']+page.locator('nav').bounding_box()['height']
+  for target in ['map','properties','history']:
+   assert page.locator('nav [data-page='+target+']').is_visible()
+  page.screenshot(path=str(out/'quadras-recolhidas.png'))
   page.click('#explorerToggle');page.click('#fullscreenBtn');page.wait_for_timeout(100)
   assert page.locator('#map').bounding_box()['height']>=680
   page.click('#fullscreenBtn');assert not errors,errors

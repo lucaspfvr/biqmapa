@@ -45,7 +45,7 @@ def run(result_path: Path) -> int:
         if time.monotonic() - started > 300:
             finish(False, "A interface não concluiu a verificação no prazo.")
             return
-        window.page.runJavaScript("""JSON.stringify((()=>{const b=document.querySelector('#basemapSvg'),c=document.querySelector('#satelliteTiles'),nodes=c?[...c.children]:[],front=c?[...(c.foregroundTileKeys||[])]:[],map=document.querySelector('#map')?.getBoundingClientRect(),main=document.querySelector('#main')?.getBoundingClientRect(),nav=document.querySelector('nav')?.getBoundingClientRect(),header=document.querySelector('.institutional-header')?.getBoundingClientRect(),settings=document.querySelector('#settingsToggle')?.getBoundingClientRect();return {ready:typeof desktopReady!=='undefined'&&desktopReady,count:typeof state!=='undefined'&&state?state.properties.length:null,phase:window.__smokePhase||'',error:window.__smokeError||'',kind:b?.dataset.kind,front:front.length,loaded:front.filter(k=>nodes.some(n=>n.dataset.tile===k&&n.dataset.loaded==='1')).length,detail:Math.max(0,...nodes.map(n=>Number(n.dataset.actualZoom)||0)),mapTop:map?.top,mainTop:main?.top,mapHeight:map?.height,mainHeight:main?.height,navTop:nav?.top,headerBottom:header?.bottom,settingsBottom:settings?.bottom,offlineReady:typeof state!=='undefined'&&!!state?.offlineMap,performance:window.__performanceResults||null,mapStatus:document.querySelector('#mapStatus')?.textContent}})())""", inspect)
+        window.page.runJavaScript("""JSON.stringify((()=>{const b=document.querySelector('#basemapSvg'),c=document.querySelector('#satelliteTiles'),nodes=c?[...c.children]:[],front=c?[...(c.foregroundTileKeys||[])]:[],map=document.querySelector('#map')?.getBoundingClientRect(),main=document.querySelector('#main')?.getBoundingClientRect(),nav=document.querySelector('nav')?.getBoundingClientRect(),header=document.querySelector('.institutional-header')?.getBoundingClientRect(),settings=document.querySelector('#settingsToggle')?.getBoundingClientRect();return {ready:typeof desktopReady!=='undefined'&&desktopReady,count:typeof state!=='undefined'&&state?state.properties.length:null,phase:window.__smokePhase||'',error:window.__smokeError||'',kind:b?.dataset.kind,front:front.length,loaded:front.filter(k=>nodes.some(n=>n.dataset.tile===k&&n.dataset.loaded==='1')).length,detail:Math.max(0,...nodes.map(n=>Number(n.dataset.actualZoom)||0)),mapTop:map?.top,mainTop:main?.top,mapHeight:map?.height,mainHeight:main?.height,navTop:nav?.top,navBottom:nav?.bottom,headerBottom:header?.bottom,settingsBottom:settings?.bottom,offlineReady:typeof state!=='undefined'&&!!state?.offlineMap,performance:window.__performanceResults||null,mapStatus:document.querySelector('#mapStatus')?.textContent}})())""", inspect)
 
     def inspect(raw):
         nonlocal phase
@@ -66,9 +66,10 @@ def run(result_path: Path) -> int:
                 assert status["detail"] >= 18, "O mapa não carregou o nível de detalhe necessário."
                 assert status["mapTop"] - status["mainTop"] <= 18, "O cabeçalho ainda ocupa a altura do mapa."
                 assert status["mapHeight"] >= status["mainHeight"] - 40
-                assert abs(status["mapTop"] - status["headerBottom"]) <= 2, "O mapa não aproveitou a faixa superior."
+                assert status["mapTop"] >= status["navBottom"], "O mapa está sobrepondo a navegação."
+                assert abs(status["mapTop"] - status["navBottom"] - 12) <= 2, "O mapa não usa o espaçamento padrão."
                 assert status["settingsBottom"] <= status["headerBottom"], "As configurações não estão no cabeçalho."
-                result.update(satellite_tiles=True, high_resolution_zoom=True, taller_map=True, settings_in_header=True)
+                result.update(satellite_tiles=True, high_resolution_zoom=True, standard_map_layout=True, settings_in_header=True)
                 result_path.parent.mkdir(parents=True, exist_ok=True)
                 window.view.grab().save(str(result_path.with_name(result_path.stem + "-map.png")))
                 phase = "offline"

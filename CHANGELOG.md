@@ -1,7 +1,7 @@
 # BIQMapa 0.7.3
 
 - Configurações no cabeçalho, com acesso ao guia de uso e à página Sobre.
-- Mais altura para o mapa, com as abas alinhadas ao painel de quadras.
+- Menu superior e proporções do mapa mantidos no padrão da versão 0.7.2.
 - Fontes maiores e melhor contraste na lista de quadras e lotes.
 - Resumo flutuante mais alto e compacto, sem o aviso de situação ativa.
 - Indicadores do acervo concentrados na página Imóveis.
