@@ -2,6 +2,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 
 from biqmapa.storage import Store
@@ -47,7 +48,7 @@ class StorageTests(unittest.TestCase):
         self.store.save(json.dumps(changed))
         backups = list(self.store.backups.glob("*.sqlite3"))
         self.assertEqual(len(backups), 1)
-        with sqlite3.connect(backups[0]) as connection:
+        with closing(sqlite3.connect(backups[0])) as connection:
             saved = json.loads(connection.execute("SELECT payload FROM app_state").fetchone()[0])
         self.assertEqual(saved, initial)
 

@@ -4,7 +4,8 @@ import tempfile
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QCoreApplication, QEvent, QTimer
+from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWidgets import QApplication
 
 from .desktop import Window, register_scheme
@@ -71,7 +72,7 @@ def run(result_path: Path) -> int:
                 window.view.reload()
                 QTimer.singleShot(500, poll)
                 return
-            elif phase == "reload" and status["count"] == 2:
+            elif phase == "reload" and status["count"] == 2 and status.get("phase") == "":
                 result.update(empty_start=True, import_json=True, status_import=True, sqlite_persistence=True, reload=True)
                 finish(True)
                 return
@@ -81,5 +82,9 @@ def run(result_path: Path) -> int:
 
     QTimer.singleShot(300, poll)
     app.exec()
+    window.view.setPage(QWebEnginePage(window.view))
+    window.page.deleteLater()
+    window.profile.deleteLater()
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
     store.close()
     return 0 if result["ok"] else 1

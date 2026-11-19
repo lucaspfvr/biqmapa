@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
@@ -74,7 +75,7 @@ class Store:
         destination = self.backups / f"BIQMapa-{datetime.now():%Y-%m-%d-%H%M%S-%f}.sqlite3"
         temporary = destination.with_suffix(".tmp")
         try:
-            with sqlite3.connect(temporary) as target:
+            with closing(sqlite3.connect(temporary)) as target:
                 self.connection.backup(target)
             temporary.replace(destination)
         except Exception:
