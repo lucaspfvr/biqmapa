@@ -16,7 +16,7 @@ await run('applyImport()');assert.equal(run('state.properties.length'),2);assert
 assert.equal(run("planImport([{cim:'101',nome:''}],false).updated.length"),0);assert.equal(run("planImport([{cim:'101',nome:'ATUALIZADO'}],false).updated.length"),1);assert.equal(run("planImport([{cim:'101'}],false).missing.length"),0);assert.equal(run("planImport([{cim:'101'}],true).missing.length"),1);assert.throws(()=>run("planImport([{cim:'101'},{cim:'101'}],false)"),/CIM repetido/);
 run("state.blocks=[{id:'b8',number:'08',space:'geo',points:[[100,100],[500,100],[500,500],[100,500]]}];state.lots=[{id:'l101',blockId:'b8',cim:'101',points:[[120,120],[200,120],[200,200],[120,200]]}];page='map';selectExplorerLot('101')");assert.equal(run('selectedCim'),'101');assert.equal(run('explorerActiveKey'),'8');assert.equal(run("explorerGroups().find(g=>g.key==='8').properties.length"),2);
 assert.equal(run('validPolygon([[0,0],[10,0],[10,10],[0,10]])'),true);assert.equal(run('validPolygon([[0,0],[10,10],[0,10],[10,0]])'),false);
-for(const page of ['map','properties','alerts','history','imports','backup']){run(`page='${page}';render()`);assert.ok(el('#main').innerHTML.length>100)}
+for(const page of ['map','properties','alerts','history','imports','backup','about']){run(`page='${page}';render()`);assert.ok(el('#main').innerHTML.length>100)}
 run("details('101')");assert.match(el('#main').innerHTML,/CADASTRO FICTICIO A/);assert.equal(run('validateState(structuredClone(state)).properties.length'),2);await run('save()');assert.equal(run('stored.properties.length'),2);
 assert.ok(!html.includes('indexedDB.open('));assert.equal(JSON.parse(seed).properties.length,0);assert.equal(JSON.parse(seed).originHistory.length,0);
 
@@ -26,5 +26,9 @@ context.tileContainer={children:[sharp,old,blurred],foregroundTileKeys:new Set([
 run('sortSatelliteLayers(tileContainer)');assert.deepEqual(context.tileContainer.children.map(n=>n.dataset.actualZoom),['14','16','18']);const moved=context.tileContainer.moves;run('sortSatelliteLayers(tileContainer)');assert.equal(context.tileContainer.moves,moved,'A ordem estável não deve mover nós do mapa.');
 run("page='map';mapLayer='satellite';renderMap()");assert.equal((run('mapLayerPickerHtml()').match(/aria-selected=\"true\"/g)||[]).length,1);assert.ok(!run('mapLayerPickerHtml()').includes('<select'));
 context.window.devicePixelRatio=2;assert.ok(run('tilePlan(camera,1100,650).every(t=>t.z<=18)'));
+run("page='map';selectedCim='101';renderPanel()");assert.ok(!el('#lotPanel').innerHTML.includes('Ativo na origem'));
+run("selectedCim='102';renderPanel()");assert.ok(el('#lotPanel').innerHTML.includes('Excluído na origem'));
+assert.ok(html.indexOf('id="settingsHub"')<html.indexOf('<nav'));assert.ok(!html.includes('id="mapNavSummary"'));
+assert.equal(run("formatRecordDocument('11111111111')"),'111.111.111-11');assert.equal(run("formatRecordDocument('11111111000111')"),'11.111.111/0001-11');assert.equal(run("formatRecordDocument('11.111.111/0001-11')"),'11.111.111/0001-11');
 console.log('Importação Tributos Docs, base vazia, atualização pelo CIM, exclusão lógica, duplicidades, mapa, ficha e persistência: OK.');
 })().catch(error=>{console.error(error);process.exitCode=1});
